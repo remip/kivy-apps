@@ -1,0 +1,13 @@
+<Page>:
+	background: background
+	AnchorLayout:
+		on_touch_down: app.next()
+		Scatter:
+			id: background
+			do_rotation: False
+			do_translation: False
+			do_scale: False
+			Image:
+				source: root.source
+				width: root.width
+				height: root.height

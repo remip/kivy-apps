@@ -1,0 +1,3 @@
+title=SlideShow
+author=Remi
+orientation=landscape
