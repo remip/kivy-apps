@@ -104,6 +104,50 @@ class BlurTransition(ShaderTransition):
 	'''
 	fs = StringProperty(BLUR_TRANSITION_FS)
 
+class RVBTransition(ShaderTransition):
+	
+	RVB_TRANSITION_FS = '''$HEADER$
+		uniform float t;
+		uniform sampler2D tex_in;
+		uniform sampler2D tex_out;
+		
+		uniform vec2 resolution;
+	
+		void main(void)
+		{
+		    vec2 uv = vec2(gl_FragCoord.x / resolution.x, gl_FragCoord.y / resolution.y);
+		
+			float amount = 0.0;
+			
+			amount = (1.0 + sin(t*6.0)) * 0.5;
+			amount *= 1.0 + sin(t*16.0) * 0.5;
+			amount *= 1.0 + sin(t*19.0) * 0.5;
+			amount *= 1.0 + sin(t*27.0) * 0.5;
+			amount = pow(amount, 3.0);
+		
+			amount *= 0.03;
+			
+		    vec3 col;
+		    col.r = texture2D( tex_out, vec2(uv.x+amount,uv.y) ).r * (1.0-t) 
+		    	  + texture2D( tex_in, vec2(uv.x+amount,uv.y) ).r  * t;
+		    col.g = texture2D( tex_out, uv ).g * (1.0-t) 
+		          + texture2D( tex_in, uv ).g * t;
+		    col.b = texture2D( tex_out, vec2(uv.x-amount,uv.y) ).b * (1.0-t)
+		          + texture2D( tex_in, vec2(uv.x-amount,uv.y) ).b * t;
+		
+			col = vec3(col.r*(1.0 - amount * 0.5), col.g*(1.0 - amount * 0.5), col.b*(1.0 - amount * 0.5));
+			
+		    gl_FragColor = vec4(col.r,col.g,col.b,1.0);
+		}
+
+	'''
+	fs = StringProperty(RVB_TRANSITION_FS)
+
+	def on_progress(self, progress):
+		self.render_ctx['resolution'] = map(float, self.screen_out.size)
+		super(RVBTransition, self).on_progress(progress)
+		
+
 
 class Page(Screen):
 	source = StringProperty()
@@ -121,16 +165,14 @@ class SlideShow(App):
 		self.transitions = [ 
 			BlurTransition(duration=1.5), 
 			PixelTransition(duration=1.5), 
-			RippleTransition(duration=1.5)
+			RippleTransition(duration=1.5),
+			RVBTransition(duration=2.0)
 		] 
-		
 		
 		# Create the screen manager
 		r = random.randint(0, len(self.transitions) -1)
-		
 		self.screenManager = ScreenManager(transition=self.transitions[r])
-		
-		
+
 		self.page1 = Page(name='page1', source = self.photos[0])
 		self.page2 = Page(name='page2', source = self.photos[1])
 		self.index = 0
