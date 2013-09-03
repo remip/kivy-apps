@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.animation import Animation
 from kivy.garden.moretransitions import PixelTransition, RippleTransition, BlurTransition, RVBTransition, RotateTransition
 from kivy.properties import StringProperty
+from kivy.clock import Clock
 
 class Page(Screen):
 	source = StringProperty()
@@ -43,9 +44,13 @@ class SlideShow(App):
 		)
 		anim.start(self.page1.background)
 		
+		Clock.schedule_once(self.next, 10)
+		
 		return self.screenManager
 		
-	def next(self):
+	def next(self,*largs):
+		
+		Clock.unschedule(self.next)
 		
 		if(self.screenManager.current == 'page1'):
 			next = 'page2'
@@ -57,7 +62,8 @@ class SlideShow(App):
 		self.index += 1
 		if self.index == len(self.photos):
 			self.index = 0
-		page.source = self.photos[self.index]		
+		page.source = self.photos[self.index]
+		page.background.scale = 1.0		
 		self.screenManager.transition = self.transitions[random.randint(0, len(self.transitions) -1)]
 		self.screenManager.current = next
 		
@@ -65,6 +71,9 @@ class SlideShow(App):
 			scale=page.background.scale*1.3, 
 			duration=15.0
 		)
+		
+		Clock.schedule_once(self.next, 10)
+		
 		anim.start(page.background)
 		
 
